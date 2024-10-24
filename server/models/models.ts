@@ -6,7 +6,7 @@ export interface User {
     name: string
     password: string
     disable: boolean
-    description: string
+    description?: string
 }
 
 interface UserWithRoleId extends User {
@@ -24,7 +24,7 @@ interface UserWithRole extends User {
 export interface Role {
     id: number
     name: string
-    description: string
+    description?: string
 }
 
 interface RoleWithUserId extends Role {
@@ -67,7 +67,7 @@ export interface Perm {
     id: number
     key: string
     name: string
-    description: string
+    description?: string
 }
 
 interface PermWithOwnRoleIds extends Perm {
