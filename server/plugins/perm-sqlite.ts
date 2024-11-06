@@ -4,8 +4,9 @@ import { open, type Database } from 'sqlite'
 //#region 重要配置
 /**
  * 环境变量来控制 sqlite3 数据库文件路径
+ * // TODO: 
  */
-const DB_FILE_PATH = (useRuntimeConfig().sqlite3DbFilePath ?? ':memory:') as string
+const DB_FILE_PATH = (useRuntimeConfig().sqlite3DbFilePath ?? './sy-perm.sqlite.db') as string
 //#endregion
 
 /**
@@ -13,7 +14,7 @@ const DB_FILE_PATH = (useRuntimeConfig().sqlite3DbFilePath ?? ':memory:') as str
  */
 const initSchema = `
   -- 创建 User 表
-  CREATE TABLE User (
+  CREATE TABLE IF NOT EXISTS User (
       id INTEGER PRIMARY KEY,
       account TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -23,14 +24,14 @@ const initSchema = `
   );
 
   -- 创建 Role 表
-  CREATE TABLE Role (
+  CREATE TABLE IF NOT EXISTS Role (
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT
   );
 
   -- 创建 Perm（Permission）表
-  CREATE TABLE Perm (
+  CREATE TABLE IF NOT EXISTS Perm (
       id INTEGER PRIMARY KEY,
       key TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -40,7 +41,8 @@ const initSchema = `
 `
 
 export default defineNitroPlugin(async (nitroApp) => {
-  openDb(db => db.run(initSchema))
+  console.log('init sqlite3 db')
+  openDb(db => db.exec(initSchema))
 })
 
 //#region 类型定义
@@ -70,13 +72,13 @@ export async function openDb() : Promise<Database>
  */
 export async function openDb<R>(callback: (db: Database) => R | Promise<R>) : Promise<R>
 export async function openDb<R>(callback ?: (db: Database) => R | Promise<R>) : Promise<Database | R>{
-  const driver = process.dev ? sqlite3.verbose().Database : sqlite3.Database
+  const driver = import.meta.dev ? sqlite3.verbose().Database : sqlite3.Database
   const db = await open({
     filename: DB_FILE_PATH,
     driver,
   })
   
-  process.dev && db.on('trace', (sql: string) => {
+  import.meta.dev && db.on('trace', (sql: string) => {
     console.log(`sql = ${sql}`)
   })
 
