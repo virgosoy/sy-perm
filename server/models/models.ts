@@ -11,7 +11,15 @@ export interface User {
     description?: string
 }
 
+/**
+ * password 是否密文取决于实现
+ */
 export type UserForInsert = FieldPartial<User, 'id'>
+
+/**
+ * password 是否密文取决于实现
+ */
+export type UserForLogin = Pick<User, 'account' | 'password'>
 
 interface UserWithRoleId extends User {
     /** 

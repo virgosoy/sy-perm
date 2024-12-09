@@ -1,5 +1,5 @@
 
-import type { Perm, Role, User, UserForInsert } from '../models/models'
+import type { Perm, Role, User, UserForInsert, UserForLogin } from '../models/models'
 
 
 /**
@@ -9,6 +9,10 @@ export interface PermDb {
     listUser(): Promise<User[]>
     listRole(): Promise<Role[]>
     listPerm(): Promise<Perm[]>
+    /**
+     * @implements 查询所有字段的原始存储，即加密的密码也要拿出来
+     */
+    getUserByAccount(userAccount: User['account']): Promise<User | undefined>
     /**
      * @param user 这里的密码是密文了，salt 字段也有值
      * @implements 实现必须要回写参数的 id
@@ -70,8 +74,7 @@ import crypto from 'crypto'
 
 /**
  * 添加用户
- * @param user 注：传入的密码是明文，执行后变密文。并会赋予 salt 字段值。
- * @returns 
+ * @param user 注：传入的密码是明文，执行后变密文。并会赋予 salt 字段值。若插入成功，则会回写 id（由 {@link PermDb.addUser} 实现 ）。
  */
 export async function addUser(user: UserForInsert) {
     const salt = crypto.randomBytes(16).toString('hex')
@@ -80,6 +83,23 @@ export async function addUser(user: UserForInsert) {
     user.password = encodePassword
     console.log({salt, encodePassword})
     return _db.addUser(user)
+}
+
+export async function getUserByAccount(userAccount: User['account']) {
+    return _db.getUserByAccount(userAccount)
+}
+
+/**
+ * 校验用户密码
+ * @param userToken 注：传入的密码是明文
+ */
+export async function verifyUserPassword(userToken: UserForLogin): Promise<boolean> {
+    const user = await getUserByAccount(userToken.account)
+    if (!user) {
+        return false
+    }
+    const encodePassword = crypto.createHash('md5').update(userToken.password + user.salt).digest('hex')
+    return encodePassword === user.password
 }
 
 export async function addRole(role: Role) {

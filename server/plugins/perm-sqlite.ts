@@ -125,6 +125,11 @@ setPermDb({
   async listRole() {
     return openDb().prepare<[], RowidTable<Role>>('select rowid,* from role').all()
   },
+  async getUserByAccount(userAccount) {
+    return openDb().prepare<[string], RowidTable<User>>(/*sql*/`
+      select rowid,* from user where account = ?
+    `).get(userAccount)
+  },
   async addUser(user) {
     // return openDb(db => db.run('insert into user(account,name,password,disable,description) values(?,?,?,?,?)', [user.account, user.name, user.password, user.disable, user.description]))
     const info = openDb().prepare<UserForInsert>(/*sql*/`
