@@ -1,5 +1,8 @@
-import sqlite3 from 'sqlite3'
-import { open, type Database } from 'sqlite'
+// import sqlite3 from 'sqlite3'
+// import { open, type Database } from 'sqlite'
+
+import Database from 'better-sqlite3'
+import type BetterSqlite3 from 'better-sqlite3'
 
 //#region 重要配置
 /**
@@ -12,14 +15,15 @@ const DB_FILE_PATH = (useRuntimeConfig().sqlite3DbFilePath ?? './sy-perm.sqlite.
 /**
  * 初始化表结构 sql
  */
-const initSchema = `
+const initSchema = /*SQL*/`
   -- 创建 User 表
   CREATE TABLE IF NOT EXISTS User (
       id INTEGER PRIMARY KEY,
-      account TEXT NOT NULL,
+      account TEXT UNIQUE NOT NULL,
       name TEXT NOT NULL,
       password TEXT NOT NULL,
-      disable BOOLEAN NOT NULL,
+      salt TEXT NOT NULL,
+      disable BOOLEAN NOT NULL DEFAULT 0,
       description TEXT
   );
 
@@ -63,28 +67,42 @@ export type RowidTable<T> = T & {
 
 //#region 工具方法
 /**
- * 打开数据库并返回数据库对象
+ * 打开数据库并返回数据库对象，不会自动关闭数据库
+ * @example 
+ * ```ts
+ * const db = openDb()
+ * // Some custom op, e.g. db.prepare(...)
+ * const stmt = db.prepare(...)
+ * const result = stmt.all()
+ * ```
  */
-export async function openDb() : Promise<Database>
+export function openDb() : BetterSqlite3.Database
 /**
  * 打开数据库，执行回调后关闭数据库，并返回其结果
  * @param callback - 参数为数据库对象
+ * @example
+ * ```ts
+ * openDb(db => db.prepare(...).all())
+ * ```
  */
-export async function openDb<R>(callback: (db: Database) => R | Promise<R>) : Promise<R>
-export async function openDb<R>(callback ?: (db: Database) => R | Promise<R>) : Promise<Database | R>{
-  const driver = import.meta.dev ? sqlite3.verbose().Database : sqlite3.Database
-  const db = await open({
-    filename: DB_FILE_PATH,
-    driver,
-  })
+export function openDb<R>(callback: (db: BetterSqlite3.Database) => R) : R
+/**
+ * 基于 better-sqlite3
+ * @author doc-snippet
+ * @version 0.0.1 初稿
+ */
+export function openDb<R>(callback ?: (db: BetterSqlite3.Database) => R) : BetterSqlite3.Database | R{
   
-  import.meta.dev && db.on('trace', (sql: string) => {
-    console.log(`sql = ${sql}`)
-  })
+  const db = new Database(DB_FILE_PATH, {verbose: import.meta.dev ? console.log : undefined});
+  db.pragma('journal_mode = WAL');
+  
+  // import.meta.dev && db.on('trace', (sql: string) => {
+  //   console.log(`sql = ${sql}`)
+  // })
 
   if(callback){
-    const result = await callback(db)
-    await db.close()
+    const result = callback(db)
+    db.close()
     return result
   }else{
     return db
@@ -94,17 +112,43 @@ export async function openDb<R>(callback ?: (db: Database) => R | Promise<R>) : 
 
 //#region PermDb 实现
 import {type PermDb, setPermDb } from '../services/services'
-import type { Perm, Role, User } from '../models/models'
+import type { Perm, Role, User, UserForInsert } from '../models/models'
+// import { SQL } from 'sql-template-strings'
 
 setPermDb({
   async listPerm() {
-    return openDb(db => db.all<RowidTable<Perm>[]>('select rowid,* from perm'))
+    return openDb().prepare<[], RowidTable<Perm>>('select rowid,* from perm').all()
   },
   async listUser() {
-    return openDb(db => db.all<RowidTable<User>[]>('select rowid,* from user'))
+    return openDb().prepare<[], RowidTable<User>>('select rowid,* from user').all()
   },
   async listRole() {
-    return openDb(db => db.all<RowidTable<Role>[]>('select rowid,* from role'))
+    return openDb().prepare<[], RowidTable<Role>>('select rowid,* from role').all()
+  },
+  async addUser(user) {
+    // return openDb(db => db.run('insert into user(account,name,password,disable,description) values(?,?,?,?,?)', [user.account, user.name, user.password, user.disable, user.description]))
+    const info = openDb().prepare<UserForInsert>(/*sql*/`
+      insert into user(account,name,password,salt,disable,description) 
+      values(@account,@name,@password,@salt,@disable,@description)`
+    ).run({
+      account: user.account, 
+      name: user.name, 
+      password: user.password, 
+      salt: user.salt, 
+      disable: user.disable ?? 0, 
+      description: user.description
+    })
+    // const result = await openDb(db => db.run(SQL`
+    //   insert into user(account,name,password,salt,disable,description) 
+    //   values(${user.account},${user.name},${user.password},${user.salt},${user.disable ?? 0},${user.description})
+    // `))
+    // 唯一约束错误在上面抛出
+    if(typeof(info.lastInsertRowid)!=='undefined'){
+      user.id = info.lastInsertRowid as number // 默认返回 number
+    }
+    // if(typeof(result.lastID)!=='undefined'){
+    //   user.id = result.lastID
+    // }
   },
 })
 
