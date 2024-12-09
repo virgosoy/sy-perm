@@ -1,3 +1,4 @@
+import type { FieldPartial } from "../utils/TsTypeUtils"
 
 /** 基础表 */
 export interface User {
@@ -5,9 +6,12 @@ export interface User {
     account: string
     name: string
     password: string
+    salt: string
     disable: boolean
     description?: string
 }
+
+export type UserForInsert = FieldPartial<User, 'id'>
 
 interface UserWithRoleId extends User {
     /** 

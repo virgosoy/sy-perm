@@ -1,12 +1,19 @@
 
-import type { Perm, Role, User } from '../models/models'
+import type { Perm, Role, User, UserForInsert } from '../models/models'
 
 
-
+/**
+ * @implements 这里的方法专注于不同数据库 sql 读写数据，而非逻辑。
+ */
 export interface PermDb {
     listUser(): Promise<User[]>
     listRole(): Promise<Role[]>
     listPerm(): Promise<Perm[]>
+    /**
+     * @param user 这里的密码是密文了，salt 字段也有值
+     * @implements 实现必须要回写参数的 id
+     */
+    addUser(user: UserForInsert): Promise<void>
 }
 
 let _db: PermDb
@@ -59,8 +66,20 @@ export async function roleTree() {
     return []
 }
 
-export async function addUser(user: User) {
-    return // TODO:
+import crypto from 'crypto'
+
+/**
+ * 添加用户
+ * @param user 注：传入的密码是明文，执行后变密文。并会赋予 salt 字段值。
+ * @returns 
+ */
+export async function addUser(user: UserForInsert) {
+    const salt = crypto.randomBytes(16).toString('hex')
+    const encodePassword = crypto.createHash('md5').update(user.password + salt).digest('hex')
+    user.salt = salt
+    user.password = encodePassword
+    console.log({salt, encodePassword})
+    return _db.addUser(user)
 }
 
 export async function addRole(role: Role) {
