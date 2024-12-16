@@ -1,6 +1,7 @@
+/** 依赖其他 services */
+import { generateSalt, hashPassword, verifyPassword } from './password'
 
 import type { Perm, Role, User, UserForInsert, UserForLogin } from '../models/models'
-
 
 /**
  * @implements 这里的方法专注于不同数据库 sql 读写数据，而非逻辑。
@@ -70,18 +71,15 @@ export async function roleTree() {
     return []
 }
 
-import crypto from 'crypto'
-
 /**
  * 添加用户
  * @param user 注：传入的密码是明文，执行后变密文。并会赋予 salt 字段值。若插入成功，则会回写 id（由 {@link PermDb.addUser} 实现 ）。
  */
 export async function addUser(user: UserForInsert) {
-    const salt = crypto.randomBytes(16).toString('hex')
-    const encodePassword = crypto.createHash('md5').update(user.password + salt).digest('hex')
+    const salt = await generateSalt()
+    const encodePassword = await hashPassword(user.password, salt)
     user.salt = salt
     user.password = encodePassword
-    console.log({salt, encodePassword})
     return _db.addUser(user)
 }
 
@@ -92,13 +90,15 @@ export async function getUserByAccount(userAccount: User['account']) {
 /**
  * 校验用户密码
  * @param userToken 注：传入的密码是明文
+ * @returns 是否校验通过
+ * @deprecated 使用 {@link verifyPassword | verifyPassword()} 代替
  */
 export async function verifyUserPassword(userToken: UserForLogin): Promise<boolean> {
     const user = await getUserByAccount(userToken.account)
     if (!user) {
         return false
     }
-    const encodePassword = crypto.createHash('md5').update(userToken.password + user.salt).digest('hex')
+    const encodePassword = await hashPassword(userToken.password, user.salt)
     return encodePassword === user.password
 }
 

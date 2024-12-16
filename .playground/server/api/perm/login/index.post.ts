@@ -1,9 +1,9 @@
 import type { UserForLogin } from "../../../../../server/models/models"
-import { verifyUserPassword } from "../../../../../server/services/services"
+import { login } from "../../../../../server/utils/perm-session"
 
 export default defineEventHandler(async (event) => {
   // 请求体
   const body = await readBody<UserForLogin>(event)
   
-  return await verifyUserPassword(body)
+  return await login(event, body)
 })

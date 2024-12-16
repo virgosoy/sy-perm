@@ -43,6 +43,13 @@ async function login() {
   })
   console.log(result)
 }
+
+async function getSession() {
+  const result = await $fetch('/api/session', {
+    method: 'GET',
+  })
+  console.log(result)
+}
 </script>
 
 <template>
@@ -53,4 +60,5 @@ async function login() {
   password: <input v-model="password"/><br>
   <button @click="addUser">addUser</button><br>
   <button @click="login">login</button><br>
+  <button @click="getSession">getSession</button><br>
 </template>
