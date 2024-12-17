@@ -1,7 +1,7 @@
 /**
  * 依赖多个 services
  */
-import type { UserForLogin } from '../models/models'
+import type { User, UserForLogin } from '../models/models'
 import { verifyPassword } from '../services/password'
 import { getUserByAccount } from '../services/services'
 import type { H3Event } from 'h3'
@@ -34,4 +34,13 @@ export async function logout(event: H3Event) {
   //   return true
   // }
   await invalidateSession(event)
+}
+
+/**
+ * 获取当前登录用户 ID
+ * @param event 
+ * @returns 未登录返回 null
+ */
+export async function getCurrentUserId(event: H3Event) {
+  return await getServerSessionAttribute(event, SERVER_SESSION_USER_ID_ATTRIBUTE_KEY) as User['id'] | null
 }
