@@ -22,3 +22,16 @@ export async function login(event: H3Event, userToken: UserForLogin) {
   await setServerSessionAttribute(event, SERVER_SESSION_USER_ID_ATTRIBUTE_KEY, user.id)
   return true
 }
+
+/**
+ * 登出
+ * 幂等，没登入进行登出也不会报错。
+ * @param event H3Event
+ */
+export async function logout(event: H3Event) {
+  // const userId = await getServerSessionAttribute(event, SERVER_SESSION_USER_ID_ATTRIBUTE_KEY)
+  // if(typeof userId === null) {
+  //   return true
+  // }
+  await invalidateSession(event)
+}

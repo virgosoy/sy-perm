@@ -44,6 +44,13 @@ async function login() {
   console.log(result)
 }
 
+async function logout() {
+  const result = await $fetch('/api/perm/logout', {
+    method: 'POST',
+  })
+  console.log(result)
+}
+
 async function getSession() {
   const result = await $fetch('/api/session', {
     method: 'GET',
@@ -60,5 +67,6 @@ async function getSession() {
   password: <input v-model="password"/><br>
   <button @click="addUser">addUser</button><br>
   <button @click="login">login</button><br>
+  <button @click="logout">logout</button><br>
   <button @click="getSession">getSession</button><br>
 </template>
