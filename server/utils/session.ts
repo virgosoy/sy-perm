@@ -135,6 +135,23 @@ function _useSession(event: H3Event, config: Partial<SessionConfig> = {}) {
   return useSession(event, finalConfig)
 }
 
+/**
+ * 获取服务器所有 session 属性
+ * @returns 类型为 { [id: string]: { [key: string]: StorageValue } }
+ */
+export async function listServerSessionAttribute() {
+  const storage = _useStorage()
+  const keys = await storage.getKeys()
+  const group: Record<string, Record<string, unknown>> = {}
+  await Promise.all(keys.map(async key => {
+    const [id, attr] = key.split(':')
+    const v = await storage.getItem(key)
+    group[id] = group[id] || {}
+    group[id][attr] = v
+  }))
+  return group
+}
+
 import { randomUUID } from 'uncrypto'
 
 /**

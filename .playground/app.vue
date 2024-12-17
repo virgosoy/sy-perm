@@ -64,6 +64,13 @@ async function getCurrentUser() {
   })
   console.log(result)
 }
+
+async function listSession() {
+  const result = await $fetch('/api/perm/manager/session', {
+    method: 'GET',
+  })
+  console.log(result)
+}
 </script>
 
 <template>
@@ -77,4 +84,5 @@ async function getCurrentUser() {
   <button @click="logout">logout</button><br>
   <button @click="getSession">getSession</button><br>
   <button @click="getCurrentUser">getCurrentUser</button><br>
+  <button @click="listSession">listSession</button><br>
 </template>
