@@ -6,7 +6,10 @@ import { verifyPassword } from '../services/password'
 import { getUserByAccount } from '../services/services'
 import type { H3Event } from 'h3'
 
-export const SERVER_SESSION_USER_ID_ATTRIBUTE_KEY = 'userId'
+const SERVER_SESSION_USER_ID_ATTRIBUTE_KEY = 'userId'
+const LOGIN_TIME_ATTRIBUT_KEY = 'loginTimeUtcMs'
+const LAST_VISIT_TIME_ATTRIBUT_KEY = 'lastVisitTimeUtcMs'
+
 /**
  * 登录
  * @param userToken 这里的密码是明文
@@ -20,6 +23,7 @@ export async function login(event: H3Event, userToken: UserForLogin) {
     return false
   }
   await setServerSessionAttribute(event, SERVER_SESSION_USER_ID_ATTRIBUTE_KEY, user.id)
+  await setServerSessionAttribute(event, LOGIN_TIME_ATTRIBUT_KEY, Date.now())
   return true
 }
 
