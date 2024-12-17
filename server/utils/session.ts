@@ -6,6 +6,7 @@
 import { defu } from 'defu'
 import { useSession, type H3Event, type SessionConfig } from 'h3'
 import { ImpossibleError } from './common'
+import { removeItems } from './useStoragePatch'
 
 // /**
 //  * 用户 session 数据
@@ -49,7 +50,7 @@ export async function invalidateSession(event: H3Event) {
   if(typeof session.id === 'undefined') {
     throw new ImpossibleError('session id is undefined')
   }
-  await storage.clear(`${session.id}`)
+  await removeItems(storage,`${session.id}`)
   await session.clear()
 }
 
@@ -99,7 +100,7 @@ export async function clearServerSessionAttribute(event: H3Event) {
   if(typeof session.id === 'undefined') {
     throw new ImpossibleError('session id is undefined')
   }
-  await storage.clear(`${session.id}`)
+  await removeItems(storage, `${session.id}`)
 }
 
 let sessionConfig: SessionConfig
