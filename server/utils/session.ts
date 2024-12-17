@@ -54,6 +54,10 @@ export async function invalidateSession(event: H3Event) {
   await session.clear()
 }
 
+// FIXME: 前端 session 对应 cookie 没用后服务端 session 还在。
+
+
+
 /**
  * 来源：node_modules\.pnpm\unstorage@1.12.0_ioredis@5.4.1\node_modules\unstorage\dist\shared\unstorage.28bc67f1.d.ts
  */
@@ -106,6 +110,11 @@ export async function clearServerSessionAttribute(event: H3Event) {
 let sessionConfig: SessionConfig
 
 /**
+ * 除了作为 storage 的命名空间之外，还作为 cookies 的 key
+ */
+const STORAGE_BASE = 'sy-perm-session'
+
+/**
  * 封装 useSession，依赖环境变量 NUXT_SESSION_PASSWORD，不配置会随机生成
  * @param event 
  * @param config 
@@ -118,7 +127,7 @@ function _useSession(event: H3Event, config: Partial<SessionConfig> = {}) {
 
     // sessionConfig = defu({ password: process.env[envSessionPassword] }, runtimeConfig.session)
     sessionConfig = { 
-      name: 'sy-perm-session',
+      name: STORAGE_BASE,
       password: process.env[envSessionPassword] ?? generateDefaultSessionPassword(),
     }
   }
@@ -140,5 +149,5 @@ function generateDefaultSessionPassword() {
  * 封装 useStorage
  */
 function _useStorage() {
-  return useStorage('sy-perm-session')
+  return useStorage(STORAGE_BASE)
 }
