@@ -1,4 +1,6 @@
-
+/**
+ * 对 useStorage 的补丁工具方法
+ */
 import type { Storage } from 'unstorage'
 
 /**

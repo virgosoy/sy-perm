@@ -1,5 +1,7 @@
 /**
- * 依赖多个 services
+ * 依赖多个 services:
+ * * session
+ * * services
  */
 import type { User, UserForLogin } from '../models/models'
 import { verifyPassword } from '../services/password'
