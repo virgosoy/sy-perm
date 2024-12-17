@@ -11,9 +11,14 @@ export interface PermDb {
     listRole(): Promise<Role[]>
     listPerm(): Promise<Perm[]>
     /**
-     * @implements 查询所有字段的原始存储，即加密的密码也要拿出来
+     * @implements 查询所有字段的原始存储，即加密的密码也要拿出来。获取不到返回 undefined。
      */
     getUserByAccount(userAccount: User['account']): Promise<User | undefined>
+    /**
+     * 根据 id 获取 user
+     * @implements 查询所有字段的原始存储，即加密的密码也要拿出来。获取不到返回 undefined。
+     */
+    getUserById(userId: User['id']): Promise<User | undefined>
     /**
      * @param user 这里的密码是密文了，salt 字段也有值
      * @implements 实现必须要回写参数的 id
@@ -85,6 +90,29 @@ export async function addUser(user: UserForInsert) {
 
 export async function getUserByAccount(userAccount: User['account']) {
     return _db.getUserByAccount(userAccount)
+}
+
+/**
+ * 根据 id 获取 user
+ * @param userId 
+ * @returns 获取不到返回 undefined
+ */
+export async function getUserById(userId: User['id']) {
+    return _db.getUserById(userId)
+}
+
+/**
+ * 获取用户信息，方便给前端展示，不包含密码和盐。
+ * @param userId 
+ * @returns 获取不到返回 undefined
+ */
+export async function getUserByIdForFrontend(userId: User['id']) {
+    const user = await getUserById(userId)
+    if (!user) {
+        return user
+    }
+    const { password, salt, ...result } = user
+    return result
 }
 
 /**
