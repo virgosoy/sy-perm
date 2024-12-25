@@ -1,5 +1,6 @@
 
 /**
+ * 单纯 session 的处理
  * 参考有修改：https://github.com/atinux/nuxt-auth-utils/blob/v0.5.5/src/runtime/server/utils/session.ts
  */
 

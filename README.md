@@ -71,3 +71,7 @@ pnpm preview
 ```
 
 Checkout the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+# Roadmap
+
+- [x] 写入 session 最后一次访问日期，使用服务器中间件实现。
