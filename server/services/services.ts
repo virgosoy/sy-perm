@@ -1,7 +1,7 @@
 /** 依赖其他 services */
 import { generateSalt, hashPassword, verifyPassword } from './password'
 
-import type { Perm, Role, User, UserForInsert, UserForLogin } from '../models/models'
+import type { Perm, Role, RoleForInsert, User, UserForInsert, UserForLogin } from '../models/models'
 
 /**
  * @implements 这里的方法专注于不同数据库 sql 读写数据，而非逻辑。
@@ -24,6 +24,10 @@ export interface PermDb {
      * @implements 实现必须要回写参数的 id
      */
     addUser(user: UserForInsert): Promise<void>
+    /**
+     * @implements 实现必须要回写参数的 id
+     */
+    addRole(role: RoleForInsert): Promise<void>
 }
 
 let _db: PermDb
@@ -31,49 +35,9 @@ export function setPermDb(db: PermDb) {
     _db = db
 }
 
+//#region 纯用户相关
 export async function listUser() {
     return _db.listUser()
-}
-
-export async function listRole() {
-    return _db.listRole()
-}
-
-export async function listPerm() {
-    return _db.listPerm()
-}
-
-export async function listPermKeyByUserId(userId: User['id']) {
-    return // TODO:
-}
-
-export async function hasPermKeyByUserId(userId: User['id'], permKey: Perm['key']) {
-    return // TODO:
-}
-
-export async function listPermKeyByRoleId(roleId: Role['id']) {
-    return // TODO:
-}
-
-export async function listRoleIdByPermKey(permKey: Perm['key']) {
-    return // TODO:
-}
-
-export async function listUserIdByPermKey(permKey: Perm['key']) {
-    return // TODO:
-}
-
-export async function getRoleWithAncestors(roleId: Role['id']) {
-    // TODO:
-}
-
-export async function getRoleWithDescendants(roleId: Role['id']) {
-    return // TODO:
-}
-
-export async function roleTree() {
-    // TODO: 
-    return []
 }
 
 /**
@@ -129,9 +93,54 @@ export async function verifyUserPassword(userToken: UserForLogin): Promise<boole
     const encodePassword = await hashPassword(userToken.password, user.salt)
     return encodePassword === user.password
 }
+//#endregion
 
-export async function addRole(role: Role) {
+//#region 纯角色相关
+export async function listRole() {
+    return _db.listRole()
+}
+
+export async function addRole(role: RoleForInsert) {
+    return _db.addRole(role)
+}
+//#endregion
+
+
+export async function listPerm() {
+    return _db.listPerm()
+}
+
+export async function listPermKeyByUserId(userId: User['id']) {
     return // TODO:
+}
+
+export async function hasPermKeyByUserId(userId: User['id'], permKey: Perm['key']) {
+    return // TODO:
+}
+
+export async function listPermKeyByRoleId(roleId: Role['id']) {
+    return // TODO:
+}
+
+export async function listRoleIdByPermKey(permKey: Perm['key']) {
+    return // TODO:
+}
+
+export async function listUserIdByPermKey(permKey: Perm['key']) {
+    return // TODO:
+}
+
+export async function getRoleWithAncestors(roleId: Role['id']) {
+    // TODO:
+}
+
+export async function getRoleWithDescendants(roleId: Role['id']) {
+    return // TODO:
+}
+
+export async function roleTree() {
+    // TODO: 
+    return []
 }
 
 export async function addPerm(perm: Perm) {

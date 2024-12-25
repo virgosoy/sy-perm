@@ -111,8 +111,8 @@ export function openDb<R>(callback ?: (db: BetterSqlite3.Database) => R) : Bette
 //#endregion
 
 //#region PermDb 实现
-import {type PermDb, setPermDb } from '../services/services'
-import type { Perm, Role, User, UserForInsert } from '../models/models'
+import { setPermDb } from '../services/services'
+import type { Perm, Role, RoleForInsert, User, UserForInsert } from '../models/models'
 // import { SQL } from 'sql-template-strings'
 
 setPermDb({
@@ -159,6 +159,16 @@ setPermDb({
     // if(typeof(result.lastID)!=='undefined'){
     //   user.id = result.lastID
     // }
+  },
+  async addRole(role) {
+    const info = openDb().prepare<RoleForInsert>(/*sql*/`
+      insert into role(name,description) values(@name, @description)
+    `).run({
+      name: role.name, 
+      description: role.description,
+    })
+    // 唯一约束错误在上面抛出
+    role.id = info.lastInsertRowid as number // 默认返回 number
   },
 })
 

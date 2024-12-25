@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User, UserForInsert } from '../server/models/models';
+import type { RoleForInsert, UserForInsert } from '../server/models/models';
 
 const account = ref('')
 const password = ref('')
@@ -11,7 +11,7 @@ async function addUser() {
       account: account.value,
       name: account.value,
       password: password.value,
-    }
+    } as UserForInsert
   })
   console.log(newId)
 }
@@ -22,7 +22,7 @@ async function addRandomUser() {
       account: 'test' + Math.random(),
       name: 'test',
       password: 'test',
-    }
+    } as UserForInsert
   })
   console.log(newId)
 }
@@ -71,6 +71,34 @@ async function listSession() {
   })
   console.log(result)
 }
+
+async function listRole() {
+  const result = await $fetch('/api/perm/role', {
+    method: 'GET',
+  })
+  console.log(result)
+}
+
+async function addRandomRole() {
+  const newId = await $fetch('/api/perm/role', {
+    method: 'POST',
+    body: {
+      name: 'test' + Math.random(),
+      description: 'test' + Math.random(),
+    } satisfies RoleForInsert
+  })
+  console.log(newId)
+}
+const roleName = ref('')
+async function addRole() {
+  const newId = await $fetch('/api/perm/role', {
+    method: 'POST',
+    body: {
+      name: roleName.value,
+    } as RoleForInsert
+  })
+  console.log(newId)
+}
 </script>
 
 <template>
@@ -85,4 +113,9 @@ async function listSession() {
   <button @click="getSession">getSession</button><br>
   <button @click="getCurrentUser">getCurrentUser</button><br>
   <button @click="listSession">listSession</button><br>
+  <button @click="listRole">listRole</button><br></br>
+  <button @click="addRandomRole">addRandomRole</button><br>
+  roleName: <input v-model="roleName"/><br>
+  <button @click="addRole">addRole</button><br>
+  
 </template>

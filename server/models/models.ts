@@ -39,6 +39,8 @@ export interface Role {
     description?: string
 }
 
+export type RoleForInsert = FieldPartial<Role, 'id'>
+
 interface RoleWithUserId extends Role {
     userId: number
 }
