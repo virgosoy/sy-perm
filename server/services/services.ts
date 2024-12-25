@@ -1,15 +1,13 @@
 /** 依赖其他 services */
 import { generateSalt, hashPassword, verifyPassword } from './password'
 
-import type { Perm, Role, RoleForInsert, User, UserForInsert, UserForLogin } from '../models/models'
+import type { Perm, PermForInsert, Role, RoleForInsert, User, UserForInsert, UserForLogin } from '../models/models'
 
 /**
  * @implements 这里的方法专注于不同数据库 sql 读写数据，而非逻辑。
  */
 export interface PermDb {
     listUser(): Promise<User[]>
-    listRole(): Promise<Role[]>
-    listPerm(): Promise<Perm[]>
     /**
      * @implements 查询所有字段的原始存储，即加密的密码也要拿出来。获取不到返回 undefined。
      */
@@ -24,10 +22,16 @@ export interface PermDb {
      * @implements 实现必须要回写参数的 id
      */
     addUser(user: UserForInsert): Promise<void>
+    listRole(): Promise<Role[]>
     /**
      * @implements 实现必须要回写参数的 id
      */
     addRole(role: RoleForInsert): Promise<void>
+    listPerm(): Promise<Perm[]>
+    /**
+     * @implements 实现必须要回写参数的 id
+     */
+    addPerm(perm: PermForInsert): Promise<void>
 }
 
 let _db: PermDb
@@ -105,10 +109,17 @@ export async function addRole(role: RoleForInsert) {
 }
 //#endregion
 
-
+//#region 纯权限相关
 export async function listPerm() {
     return _db.listPerm()
 }
+
+export async function addPerm(perm: PermForInsert) {
+    return _db.addPerm(perm)
+}
+
+//#endregion
+
 
 export async function listPermKeyByUserId(userId: User['id']) {
     return // TODO:
@@ -141,10 +152,6 @@ export async function getRoleWithDescendants(roleId: Role['id']) {
 export async function roleTree() {
     // TODO: 
     return []
-}
-
-export async function addPerm(perm: Perm) {
-    return // TODO:
 }
 
 /**

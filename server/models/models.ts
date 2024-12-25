@@ -84,6 +84,8 @@ export interface Perm {
     description?: string
 }
 
+export type PermForInsert = FieldPartial<Perm, 'id'>
+
 interface PermWithOwnRoleIds extends Perm {
     roles: {
         roleId: number

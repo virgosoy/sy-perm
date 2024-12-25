@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoleForInsert, UserForInsert } from '../server/models/models';
+import type { PermForInsert, RoleForInsert, UserForInsert } from '../server/models/models';
 
 const account = ref('')
 const password = ref('')
@@ -99,6 +99,38 @@ async function addRole() {
   })
   console.log(newId)
 }
+
+async function listPerm() {
+  const result = await $fetch('/api/perm/perm', {
+    method: 'GET',
+  })
+  console.log(result)
+}
+
+async function addRandomPerm() {
+  const newId = await $fetch('/api/perm/perm', {
+    method: 'POST',
+    body: {
+      key: 'test' + Math.random(),
+      name: 'test' + Math.random(),
+    } as PermForInsert
+  })
+  console.log(newId)
+}
+const permKey = ref('')
+const permName = ref('')
+
+async function addPerm() {
+  const newId = await $fetch('/api/perm/perm', {
+    method: 'POST',
+    body: {
+      key: permKey.value,
+      name: permName.value,
+    } as PermForInsert
+  })
+  console.log(newId)
+}
+
 </script>
 
 <template>
@@ -117,5 +149,10 @@ async function addRole() {
   <button @click="addRandomRole">addRandomRole</button><br>
   roleName: <input v-model="roleName"/><br>
   <button @click="addRole">addRole</button><br>
+  <button @click="listPerm">listPerm</button><br></br>
+  <button @click="addRandomPerm">addRandomPerm</button><br>
+  permKey: <input v-model="permKey"/><br>
+  permName: <input v-model="permName"/><br>
+  <button @click="addPerm">addPerm</button><br>
   
 </template>
