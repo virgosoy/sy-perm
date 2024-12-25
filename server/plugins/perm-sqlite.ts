@@ -30,15 +30,15 @@ const initSchema = /*SQL*/`
   -- 创建 Role 表
   CREATE TABLE IF NOT EXISTS Role (
       id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
+      name TEXT UNIQUE NOT NULL,
       description TEXT
   );
 
   -- 创建 Perm（Permission）表
   CREATE TABLE IF NOT EXISTS Perm (
       id INTEGER PRIMARY KEY,
-      key TEXT NOT NULL,
-      name TEXT NOT NULL,
+      key TEXT UNIQUE NOT NULL,
+      name TEXT UNIQUE NOT NULL,
       description TEXT
   );
 
