@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "vitest.explorer"
+        "vitest.explorer",
+        "gruntfuggly.todo-tree",
+        "intellsmi.comment-translate"
     ]
 }

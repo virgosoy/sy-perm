@@ -1,3 +1,12 @@
 {
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "commentTranslate.targetLanguage": "zh-CN",
+    "todo-tree.general.tags": [
+        "BUG",
+        "HACK",
+        "FIXME",
+        "TODO",
+        "XXX",
+        "[ ]"
+    ]
 }
