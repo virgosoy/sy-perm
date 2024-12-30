@@ -32,6 +32,12 @@ export interface PermDb {
      * @implements 实现必须要回写参数的 id
      */
     addPerm(perm: PermForInsert): Promise<void>
+    /**
+     * 设置用户与角色的关系
+     * @param userId 
+     * @param roleId 
+     */
+    setUserRole(userId: User['id'], roleId: Role['id']): Promise<void>
 }
 
 let _db: PermDb
@@ -53,7 +59,16 @@ export async function addUser(user: UserForInsert) {
     const encodePassword = await hashPassword(user.password, salt)
     user.salt = salt
     user.password = encodePassword
-    return _db.addUser(user)
+    // TODO: 事务处理
+    _db.addUser(user)
+    // 同时创建相关的角色，进行绑定
+    const role = {
+        id: undefined as number | undefined,
+        name: `user-${user.account}-${user.name}`, // TODO: 不会重复的方式，例如后缀时间戳
+        description: user.description
+    }
+    _db.addRole(role)
+    _db.setUserRole(user.id!, role.id!)
 }
 
 export async function getUserByAccount(userAccount: User['account']) {

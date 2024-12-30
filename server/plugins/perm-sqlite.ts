@@ -24,7 +24,8 @@ const initSchema = /*SQL*/`
       password TEXT NOT NULL,
       salt TEXT NOT NULL,
       disable BOOLEAN NOT NULL DEFAULT 0,
-      description TEXT
+      description TEXT,
+      role_id INTEGER /* 关联 ? - 1 Role.id */
   );
 
   -- 创建 Role 表
@@ -126,26 +127,26 @@ setPermDb({
     return openDb().prepare<[], RowidTable<Role>>('select rowid,* from role').all()
   },
   async getUserByAccount(userAccount) {
-    return openDb().prepare<[string], RowidTable<User>>(/*sql*/`
+    return openDb().prepare<[string], RowidTable<User>>(/*sql*/ `
       select rowid,* from user where account = ?
     `).get(userAccount)
   },
   async getUserById(userId) {
-    return openDb().prepare<[number], RowidTable<User>>(/*sql*/`
+    return openDb().prepare<[number], RowidTable<User>>(/*sql*/ `
       select rowid,* from user where id = ?
     `).get(userId)
   },
   async addUser(user) {
     // return openDb(db => db.run('insert into user(account,name,password,disable,description) values(?,?,?,?,?)', [user.account, user.name, user.password, user.disable, user.description]))
-    const info = openDb().prepare<UserForInsert>(/*sql*/`
+    const info = openDb().prepare<UserForInsert>(/*sql*/ `
       insert into user(account,name,password,salt,disable,description) 
       values(@account,@name,@password,@salt,@disable,@description)`
     ).run({
-      account: user.account, 
-      name: user.name, 
-      password: user.password, 
-      salt: user.salt, 
-      disable: user.disable ?? 0, 
+      account: user.account,
+      name: user.name,
+      password: user.password,
+      salt: user.salt,
+      disable: user.disable ?? 0,
       description: user.description
     })
     // const result = await openDb(db => db.run(SQL`
@@ -153,7 +154,7 @@ setPermDb({
     //   values(${user.account},${user.name},${user.password},${user.salt},${user.disable ?? 0},${user.description})
     // `))
     // 唯一约束错误在上面抛出
-    if(typeof(info.lastInsertRowid)!=='undefined'){
+    if (typeof (info.lastInsertRowid) !== 'undefined') {
       user.id = info.lastInsertRowid as number // 默认返回 number
     }
     // if(typeof(result.lastID)!=='undefined'){
@@ -161,25 +162,33 @@ setPermDb({
     // }
   },
   async addRole(role) {
-    const info = openDb().prepare<RoleForInsert>(/*sql*/`
+    const info = openDb().prepare<RoleForInsert>(/*sql*/ `
       insert into role(name,description) values(@name, @description)
     `).run({
-      name: role.name, 
+      name: role.name,
       description: role.description,
     })
     // 唯一约束错误在上面抛出
     role.id = info.lastInsertRowid as number // 默认返回 number
   },
   async addPerm(perm) {
-    const info = openDb().prepare<PermForInsert>(/*sql*/`
+    const info = openDb().prepare<PermForInsert>(/*sql*/ `
       insert into perm(key,name,description) values(@key, @name, @description)
     `).run({
-      key: perm.key, 
-      name: perm.name, 
+      key: perm.key,
+      name: perm.name,
       description: perm.description,
     })
     // 唯一约束错误在上面抛出
     perm.id = info.lastInsertRowid as number // 默认返回 number
+  },
+  async setUserRole(userId: User['id'], roleId: Role['id']) {
+    openDb().prepare<{userId: User['id'], roleId: Role['id']}>(/*sql*/ `
+      update user set role_id = @roleId where id = @userId
+    `).run({
+      roleId,
+      userId,
+    })
   },
 })
 
