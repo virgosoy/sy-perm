@@ -19,7 +19,8 @@
       "  // 请求体",
       "  const body = await readBody<${1:MyReq}>(event)",
       "  // 路由参数",
-      "  const ${2:id} = event.context.params.$2",
+      "  // const ${2:id} = event.context.params.$2",
+      "  const ${2:id} = getRouterParam(event, '$2')",
       "  // 查询参数",
       "  const query = getQuery(event)",
       "  const ${2:id} = query.$2",
@@ -66,9 +67,10 @@
   },
   "api-valid-route-param-int": {
     "scope": "typescript",
-    "prefix": ["apiVaildRouteParamInt", "parseInt(event.context.params."],
+    "prefix": ["apiVaildRouteParamInt", "parseInt(event.context.params.", "parseInt(getRouterParam(event,"],
     "body": [
-      "const ${1:rowid} = parseInt(event.context.params?.$1 ?? '')",
+      "// const ${1:rowid} = parseInt(event.context.params?.$1 ?? '')",
+      "const ${1:rowid} = parseInt(getRouterParam(event, '$1') ?? '')",
       "if(!Number.isInteger($1)){",
       "  $2",
       "}",

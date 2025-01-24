@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PermForInsert, RoleForInsert, UserForInsert } from '../server/models/models';
+import type { PermForInsert, Role, RoleForInsert, UserForInsert } from '../server/models/models';
 
 const account = ref('')
 const password = ref('')
@@ -131,6 +131,31 @@ async function addPerm() {
   console.log(newId)
 }
 
+const roleList = ref<Role[]>([])
+
+onMounted(async () => {
+  roleList.value = await $fetch('/api/perm/role', {
+    method: 'GET',
+  })
+})
+
+const currentRoleId = ref()
+const targetRoleIds = ref<Role['id'][]>([])
+
+watchEffect(async () => {
+  if (currentRoleId.value) {
+    targetRoleIds.value = await $fetch(`/api/perm/role/${currentRoleId.value}/parent/id`, {
+      method: 'GET',
+    })
+  }
+})
+
+async function setRoleExtendsRelation(){
+  await $fetch(`/api/perm/role/${currentRoleId.value}/parent/id`, {
+    method: 'POST',
+    body: targetRoleIds.value,
+  })
+}
 </script>
 
 <template>
@@ -154,5 +179,21 @@ async function addPerm() {
   permKey: <input v-model="permKey"/><br>
   permName: <input v-model="permName"/><br>
   <button @click="addPerm">addPerm</button><br>
-  
+  <h1>role extends</h1>
+  <div>
+    current role: 
+    <select v-model="currentRoleId">
+      <option v-for="role in roleList" :value="role.id">{{ role.name }}</option>
+    </select>
+    target role:
+    <div v-for="targetRoleId, index in targetRoleIds" >
+      <select v-model="targetRoleIds[index]">
+        <option v-for="role in roleList.filter(v => v.id !== currentRoleId && !targetRoleIds.includes(v.id) || v.id == targetRoleIds[index])" 
+          :value="role.id">{{ role.name }}</option>
+      </select>
+      <button @click="targetRoleIds.splice(index, 1)">remove</button>
+    </div>
+    <button @click="targetRoleIds.push(0)">add</button>
+    <button @click="setRoleExtendsRelation">setRoleExtendsRelation</button>
+  </div>
 </template>

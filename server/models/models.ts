@@ -50,8 +50,8 @@ interface RoleWithUser extends Role {
 
 /** 关系表 */
 interface RoleExtend {
-    parentsId: number
-    childrenId: number
+    childId: number
+    parentId: number
 }
 
 interface RoleWithparentIds extends Role {

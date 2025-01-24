@@ -25,7 +25,7 @@ const initSchema = /*SQL*/`
       salt TEXT NOT NULL,
       disable BOOLEAN NOT NULL DEFAULT 0,
       description TEXT,
-      role_id INTEGER /* 关联 ? - 1 Role.id */
+      roleId INTEGER /* 关联 ? - 1 Role.id */
   );
 
   -- 创建 Role 表
@@ -41,6 +41,12 @@ const initSchema = /*SQL*/`
       key TEXT UNIQUE NOT NULL,
       name TEXT UNIQUE NOT NULL,
       description TEXT
+  );
+
+  -- 创建角色继承表
+  CREATE TABLE IF NOT EXISTS RoleExtend (
+    childId INTEGER NOT NULL,
+    parentId INTEGER NOT NULL
   );
 
 `
@@ -121,7 +127,7 @@ setPermDb({
     return openDb().prepare<[], RowidTable<Perm>>('select rowid,* from perm').all()
   },
   async listUser() {
-    return openDb().prepare<[], RowidTable<User>>('select rowid,* from user').all()
+    return openDb().prepare<[], RowidTable<User>>('select rowid, * from user').all()
   },
   async listRole() {
     return openDb().prepare<[], RowidTable<Role>>('select rowid,* from role').all()
@@ -170,6 +176,40 @@ setPermDb({
     })
     // 唯一约束错误在上面抛出
     role.id = info.lastInsertRowid as number // 默认返回 number
+  },
+  async listRoleIdByChildRoleId(childRoleId) {
+    const result = openDb().prepare<{childRoleId: Role['id']}, Role['id']>(/*sql*/ `
+      SELECT parentId FROM RoleExtend WHERE childId = @childRoleId
+    `).all({
+      childRoleId,
+    })
+    return result
+  },
+  async listRoleByChildRoleId(childRoleId) {
+    const result = openDb().prepare<{childRoleId: Role['id']}, Role>(/*sql*/ `
+      SELECT r.* 
+        FROM RoleExtend re
+          INNER JOIN Role r ON re.parentId = r.id
+        WHERE re.childId = @childRoleId
+    `).all({
+      childRoleId,
+    })
+    return result
+  },
+  async setRoleExtendsRelation(roleId: Role['id'], parentIds: Role['id'][]): Promise<void> {
+    const db = openDb()
+    const txn = db.transaction(() => {
+      db.prepare(/*sql*/ `
+        DELETE FROM RoleExtend WHERE childId = @roleId
+      `).run({ roleId })
+      const stmt = db.prepare(/*sql*/ `
+        INSERT INTO RoleExtend (childId, parentId) VALUES (@roleId, @parentId)
+      `)
+      for (const parentId of parentIds) {
+        stmt.run({ roleId, parentId })
+      }
+    })
+    txn()
   },
   async addPerm(perm) {
     const info = openDb().prepare<PermForInsert>(/*sql*/ `
